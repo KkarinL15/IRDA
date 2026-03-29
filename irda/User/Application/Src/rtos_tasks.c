@@ -101,8 +101,7 @@ void Interaction_task(void *pvParameters) {
         xQueuePeek(irda_queue_handle, &rxqueue, portMAX_DELAY);
         xQueuePeek(interaction_queue_handle, &txbuf, portMAX_DELAY);
 
-        if (rxqueue == RES_OK)
-        {
+        if (rxqueue == RES_OK){
             break;
         }else if(rxqueue == WAIT){
             Infrared_send(&huart7, FROM_R1, RES_OK);
