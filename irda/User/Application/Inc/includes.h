@@ -25,6 +25,9 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
+#define IRDA_QUEUE_LENGTH  1
+#define INTERACTION_QUEUE_LENGTH  1
+
 void freertos_start(void);
 
 #ifdef __cplusplus
