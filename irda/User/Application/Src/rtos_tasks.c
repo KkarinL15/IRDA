@@ -14,13 +14,16 @@ void start_task(void *pvParameters);
 static TaskHandle_t message_polling_task_handle;
 void message_polling_task(void *pvParameters);
 
-static TaskHandle_t message_send_task_handle;
-void message_send_task(void *pvParameters);
+static TaskHandle_t Interaction_task_handle;
+void Interaction_task(void *pvParameters);
 
 static TaskHandle_t task3_handle;
 void task3(void *pvParameters);
 
+SemaphoreHandle_t irda_xSemaphore;
+
 uint8_t txdata={0};     //发送数据缓冲区
+uint8_t rxdata;         //接收有效数据
 /*****************************************************************************/
 
 /**
@@ -44,10 +47,12 @@ void start_task(void *pvParameters) {
     message_register_polling_uart(MSG_TO_MASTER, &huart2, 100, 512);
     taskENTER_CRITICAL();
 
-    xTaskCreate(message_send_task, "message_send_task", 128, NULL, 3, &message_send_task_handle);
-    xTaskCreate(message_polling_task, "message_polling_task", 512, NULL, 2, &message_polling_task_handle);
-    xTaskCreate(task3, "task3", 128, NULL, 2, &task3_handle);
+    xSemaphoreCreateBinary();
+    irda_xSemaphore = xSemaphoreCreateBinary();      //创建二值信号量
 
+    xTaskCreate(Interaction_task, "Interaction_task", 128, NULL, 3, &Interaction_task_handle);
+    xTaskCreate(message_polling_task, "message_polling_task", 512, NULL, 4, &message_polling_task_handle);
+    xTaskCreate(task3, "task3", 128, NULL, 2, &task3_handle);
 
     vTaskDelete(start_task_handle);
     taskEXIT_CRITICAL();
@@ -64,42 +69,72 @@ void message_polling_task(void *pvParameters) {
     while (1) {
         LED0_TOGGLE();
 
-        // uint8_t txdata;
-        switch (Infrared_receive(&huart7, FROM_R2))
+        rxdata = Infrared_receive(&huart7, FROM_R2);
+
+        if (rxdata == 0xFD)
         {
-        case 0x03:
-            // txdata = 0x06;
-            Infrared_send(&huart7, FROM_R1, RES_OK);
-            break;
-        case 0x02:
-            // txdata = 0x07;
-            Infrared_send(&huart7, FROM_R1, RES_OK);
-            break;
-        case 0x01:
-            // txdata = 0x08;
-            Infrared_send(&huart7, FROM_R1, RES_OK);
-            break;
-        case RES_OK:
-            break;
-        default:
-            break;
+            xSemaphoreTake(irda_xSemaphore, portMAX_DELAY);
         }
+        
+        if (rxdata < 0xFD && rxdata >= 0x00)
+        {
+            Infrared_send(&huart7, FROM_R1, RES_OK);
+        }
+
+        // uint8_t txdata;
+        // switch (Infrared_receive(&huart7, FROM_R2))
+        // {
+        // case 0x03:
+        //     // txdata = 0x06;
+        //     Infrared_send(&huart7, FROM_R1, RES_OK);
+        //     break;
+        // case 0x02:
+        //     // txdata = 0x07;
+        //     Infrared_send(&huart7, FROM_R1, RES_OK);
+        //     break;
+        // case 0x01:
+        //     // txdata = 0x08;
+        //     Infrared_send(&huart7, FROM_R1, RES_OK);
+        //     break;
+        // case RES_OK:
+        //     break;
+        // default:
+        //     break;
+        // }
         vTaskDelay(500);
     }
 }
 
 /**
- * @brief message_send_task: Send messages.
+ * @brief Interaction_task: Send messages.
  *
  * @param pvParameters Start parameters.
  */
-void message_send_task(void *pvParameters) {
+void Interaction_task(void *pvParameters) {
     UNUSED(pvParameters);
 
     while (1) {
-        txdata = 0x00;
         LED1_TOGGLE();
-        // Infrared_send(&huart7, FROM_R1, txdata);
+
+        switch (1)
+        {
+        case 0:
+            txdata = 0x01;
+            xSemaphoreGive(irda_xSemaphore);
+            break;
+        case 2:
+            txdata = 0x02;
+            xSemaphoreGive(irda_xSemaphore);
+            break;
+        default:
+            break;
+        }
+
+        if (xSemaphoreTake(irda_xSemaphore, portMAX_DELAY) == pdTRUE)
+        {
+            Infrared_send(&huart7, FROM_R1, txdata);
+            xSemaphoreGive(irda_xSemaphore);
+        }
         vTaskDelay(500);
     }
 }
