@@ -20,8 +20,8 @@ extern "C" {
  * @{
  */
 
-#define SEND_OK         0xF1
-#define RES_OK          0xFD
+#define SEND_OK         0xF1  //反馈消息
+#define RES_OK          0xFD  //应答信号
 
 /**
  * @brief 指令发送方

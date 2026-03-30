@@ -18,7 +18,7 @@ unsigned char modified_addr     = 0XF2;//设备地址
 unsigned char modified_baud     = 0XF3;//修改波特率
 uint8_t rec_buf[1] = {0};        //接收反馈信息
 uint8_t rxdata_buf[100]={0};     //接收数据缓冲区
-static uint8_t rxdata[3];        //接收的数据
+uint8_t rxdata[3]={0};           //接收的数据
 
 /**
  * @brief 串口红外发送消息
@@ -69,7 +69,7 @@ uint8_t Infrared_receive(UART_HandleTypeDef *huart,com_id_t id){
     //提取有效数据
     for (int i = 0; i < sizeof(rxdata_buf); i++)
     {
-        if (rxdata_buf[i] == 0xF1)
+        if (rxdata_buf[i] == SEND_OK)
         {
             continue;
         }else{

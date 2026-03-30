@@ -27,7 +27,8 @@ uint8_t txbuf={0};     //发送数据缓冲区
 uint8_t txdata={0};     //发送数据
 uint8_t rxbuf;         //接收有效数据
 uint8_t rxqueue;        //接收队列数据
-uint8_t WAIT  = 0xFF;//等待标志
+uint8_t WAIT      = 0xFF;//可以应答标志
+uint8_t CONTINUE  = 0xFE;//继续发送标志
 /*****************************************************************************/
 
 /**
@@ -51,12 +52,12 @@ void start_task(void *pvParameters) {
     message_register_polling_uart(MSG_TO_MASTER, &huart2, 100, 512);
     taskENTER_CRITICAL();
 
-    xQueueCreate(IRDA_QUEUE_LENGTH, sizeof(IRDA_QUEUE_LENGTH));
-    xQueueCreate(INTERACTION_QUEUE_LENGTH, sizeof(INTERACTION_QUEUE_LENGTH));
+    irda_queue_handle = xQueueCreate(IRDA_QUEUE_LENGTH, sizeof(IRDA_QUEUE_LENGTH));
+    interaction_queue_handle = xQueueCreate(INTERACTION_QUEUE_LENGTH, sizeof(INTERACTION_QUEUE_LENGTH));
 
-    xTaskCreate(Interaction_task, "Interaction_task", 128, NULL, 3, &Interaction_task_handle);
+    xTaskCreate(task3, "task3", 128, NULL, 3, &task3_handle);
     xTaskCreate(message_polling_task, "message_polling_task", 512, NULL, 3, &message_polling_task_handle);
-    xTaskCreate(task3, "task3", 128, NULL, 2, &task3_handle);
+    xTaskCreate(Interaction_task, "Interaction_task", 128, NULL, 3, &Interaction_task_handle);
 
     vTaskDelete(start_task_handle);
     taskEXIT_CRITICAL();
@@ -76,7 +77,7 @@ void message_polling_task(void *pvParameters) {
         rxbuf = Infrared_receive(&huart7, FROM_R2);
 
         if(rxbuf == 0){
-            break;
+            xQueueOverwrite(irda_queue_handle, &CONTINUE);
         }else if(rxbuf == RES_OK){
             xQueueOverwrite(irda_queue_handle, &rxbuf);
         }else{
@@ -98,14 +99,14 @@ void Interaction_task(void *pvParameters) {
     while (1) {
         LED1_TOGGLE();
 
-        xQueuePeek(irda_queue_handle, &rxqueue, portMAX_DELAY);
+        xQueueReceive(irda_queue_handle, &rxqueue, portMAX_DELAY);
         xQueuePeek(interaction_queue_handle, &txbuf, portMAX_DELAY);
 
         if (rxqueue == RES_OK){
-            break;
+            continue;
         }else if(rxqueue == WAIT){
             Infrared_send(&huart7, FROM_R1, RES_OK);
-        }else{
+        }else if(rxqueue == CONTINUE){
             Infrared_send(&huart7, FROM_R1, txbuf);
         }
 
@@ -121,33 +122,10 @@ void Interaction_task(void *pvParameters) {
 void task3(void *pvParameters) {
     UNUSED(pvParameters);
 
-    uint8_t key = 3;
-
     while (1) {
-        xQueueSend(interaction_queue_handle, &key, portMAX_DELAY);
-        key = key_scan(0);
-        switch (key) {
-            case WKUP_PRESS: {
-                printf("Wake Up Pressed. \n");
-            } break;
-
-            case KEY0_PRESS: {
-                printf("KEY0 Pressed. \n");
-            } break;
-
-            case KEY1_PRESS: {
-                printf("KEY1 Pressed. \n");
-            } break;
-
-            case KEY2_PRESS: {
-                printf("KEY2 Pressed. \n");
-            } break;
-
-            default: {
-            } break;
-        }
-
-        vTaskDelay(10);
+        int i = 2;
+        xQueueSend(interaction_queue_handle, &i, portMAX_DELAY);
+        vTaskDelay(100);
     }
 }
 

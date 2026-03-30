@@ -117,6 +117,8 @@ targets:
       - <virtual_root>/Docs
       - CubeMX/Core/Src/Backup
       - User/Modules/msg_protocol.c
+    settings:
+      debugger: cortex-debug
     toolchain: AC6
     toolchainConfigMap:
       AC6:
