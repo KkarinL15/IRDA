@@ -59,6 +59,7 @@ void Infrared_send(UART_HandleTypeDef *huart,com_id_t id,uint8_t data)
  *
  * @param huart       串口句柄
  * @param id          指令发送方
+ * @return 接收的有效数据
  */
 uint8_t Infrared_receive(UART_HandleTypeDef *huart,com_id_t id){
 

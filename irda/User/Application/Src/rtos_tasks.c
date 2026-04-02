@@ -24,7 +24,6 @@ static QueueHandle_t irda_queue_handle;
 static QueueHandle_t interaction_queue_handle;
 
 uint8_t txbuf={0};     //发送数据缓冲区
-uint8_t txdata={0};     //发送数据
 uint8_t rxbuf;         //接收有效数据
 uint8_t rxqueue;        //接收队列数据
 uint8_t WAIT      = 0xFF;//可以应答标志
@@ -68,6 +67,8 @@ void start_task(void *pvParameters) {
  *
  * @param pvParameters Start parameters.
  */
+
+ 
 void message_polling_task(void *pvParameters) {
     UNUSED(pvParameters);
 
