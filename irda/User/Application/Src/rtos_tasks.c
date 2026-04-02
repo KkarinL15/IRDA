@@ -68,6 +68,8 @@ void start_task(void *pvParameters) {
  *
  * @param pvParameters Start parameters.
  */
+
+ 
 void message_polling_task(void *pvParameters) {
     UNUSED(pvParameters);
 
