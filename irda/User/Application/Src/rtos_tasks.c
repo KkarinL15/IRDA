@@ -23,7 +23,7 @@ void task3(void *pvParameters);
 static QueueHandle_t irda_queue_handle;
 static QueueHandle_t interaction_queue_handle;
 
-uint8_t txbuf={0};     //发送数据缓冲区
+// uint8_t txbuf={0};     //发送数据缓冲区
 uint8_t rxbuf;         //接收有效数据
 uint8_t rxqueue;        //接收队列数据
 uint8_t WAIT      = 0xFF;//可以应答标志
@@ -77,15 +77,28 @@ void message_polling_task(void *pvParameters) {
 
         rxbuf = Infrared_receive(&huart7, FROM_R2);
 
-        if(rxbuf == 0){
+        switch (rxbuf)
+        {
+        case 0:
             xQueueOverwrite(irda_queue_handle, &CONTINUE);
-        }else if(rxbuf == RES_OK){
+            break;
+        case RES_OK:
             xQueueOverwrite(irda_queue_handle, &rxbuf);
-        }else{
+            break;
+        default:
             xQueueOverwrite(irda_queue_handle, &WAIT);
+            break;
         }
 
-        vTaskDelay(500);
+        // if(rxbuf == 0){
+        //     xQueueOverwrite(irda_queue_handle, &CONTINUE);
+        // }else if(rxbuf == RES_OK){
+        //     xQueueOverwrite(irda_queue_handle, &rxbuf);
+        // }else{
+        //     xQueueOverwrite(irda_queue_handle, &WAIT);
+        // }
+
+        delay_ms(88);
     }
 }
 
@@ -97,21 +110,42 @@ void message_polling_task(void *pvParameters) {
 void Interaction_task(void *pvParameters) {
     UNUSED(pvParameters);
 
+    int txdata = 0x01;//待定
     while (1) {
         LED1_TOGGLE();
 
         xQueueReceive(irda_queue_handle, &rxqueue, portMAX_DELAY);
-        xQueuePeek(interaction_queue_handle, &txbuf, portMAX_DELAY);
+        // xQueuePeek(interaction_queue_handle, &txbuf, portMAX_DELAY);
 
-        if (rxqueue == RES_OK){
-            continue;
-        }else if(rxqueue == WAIT){
+        switch (rxqueue)
+        {
+        case RES_OK:
+            break;
+        case RES:
             Infrared_send(&huart7, FROM_R1, RES_OK);
-        }else if(rxqueue == CONTINUE){
-            Infrared_send(&huart7, FROM_R1, txbuf);
+            break;
+        case CON_SEND:
+            Infrared_send(&huart7, FROM_R1, txdata);
+            break;
+        default:
+            break;
         }
 
-        vTaskDelay(500);
+        // if (rxqueue == RES_OK){
+        //     continue;
+        // }else if(rxqueue == WAIT){
+        //     Infrared_send(&huart7, FROM_R1, RES_OK);
+        // }else if(rxqueue == CONTINUE){
+        //     Infrared_send(&huart7, FROM_R1, txdata);
+        // }
+
+        txdata++;
+        if (txdata > 238)
+        {
+            txdata = 0;
+        }
+
+        delay_ms(88);
     }
 }
 

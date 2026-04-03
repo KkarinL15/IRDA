@@ -22,7 +22,8 @@ extern "C" {
 
 #define SEND_OK         0xF1  //反馈消息
 #define RES_OK          0xFD  //应答信号
-
+#define RES             0xFF  //可以应答标志
+#define CON_SEND        0xFE  //继续发送标志
 /**
  * @brief 指令发送方
  */

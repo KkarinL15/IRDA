@@ -3,7 +3,7 @@
  * @author  
  * @brief   infrared functions.
  * @note    适用26R1R2通信，注意串口初始化，波特率19200
- * @version 1.2
+ * @version 1.1
  * @date    2026-03-28
  */
 
@@ -17,7 +17,7 @@ unsigned char Infrared_emission = 0XF1;//红外发射状态
 unsigned char modified_addr     = 0XF2;//设备地址
 unsigned char modified_baud     = 0XF3;//修改波特率
 uint8_t rec_buf[1] = {0};        //接收反馈信息
-uint8_t rxdata_buf[100]={0};     //接收数据缓冲区
+uint8_t rxdata_buf[102]={0};     //接收数据缓冲区
 uint8_t rxdata[3]={0};           //接收的数据
 
 /**
