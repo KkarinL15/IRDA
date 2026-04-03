@@ -159,6 +159,8 @@ targets:
       - <virtual_root>/Drivers/HAL_Driver/stm32f4xx_hal_wwdg.c
       - <virtual_root>/Drivers/HAL_Driver/stm32f4xx_ll_fmc.c
       - <virtual_root>/Drivers/HAL_Driver/stm32f4xx_hal_spi.c
+    settings:
+      debugger: cortex-debug
     toolchain: AC6
     toolchainConfigMap:
       AC6:
