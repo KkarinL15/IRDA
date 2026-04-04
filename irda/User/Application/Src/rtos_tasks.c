@@ -98,7 +98,7 @@ void message_polling_task(void *pvParameters) {
         //     xQueueOverwrite(irda_queue_handle, &WAIT);
         // }
 
-        delay_ms(88);
+        delay_ms(90);
     }
 }
 
