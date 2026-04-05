@@ -2,8 +2,8 @@
  * @file    infrared.h
  * @author  
  * @brief   Infrared function.
- * @version 1.0
- * @date    2026-03-12
+ * @version 1.1
+ * @date    2026-03-28
  */
 
 #ifndef __INFRARED_H
