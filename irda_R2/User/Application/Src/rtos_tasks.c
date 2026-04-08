@@ -21,7 +21,7 @@ static TaskHandle_t task3_handle;
 void task3(void *pvParameters);
 
 static QueueHandle_t irda_queue_handle;
-static QueueHandle_t interaction_queue_handle;
+// static QueueHandle_t interaction_queue_handle;
 
 // uint8_t txbuf={0};     //发送数据缓冲区
 uint8_t rxbuf;         //接收有效数据
@@ -52,7 +52,7 @@ void start_task(void *pvParameters) {
     taskENTER_CRITICAL();
 
     irda_queue_handle = xQueueCreate(IRDA_QUEUE_LENGTH, sizeof(IRDA_QUEUE_LENGTH));
-    interaction_queue_handle = xQueueCreate(INTERACTION_QUEUE_LENGTH, sizeof(INTERACTION_QUEUE_LENGTH));
+    // interaction_queue_handle = xQueueCreate(INTERACTION_QUEUE_LENGTH, sizeof(INTERACTION_QUEUE_LENGTH));
 
     xTaskCreate(task3, "task3", 128, NULL, 3, &task3_handle);
     xTaskCreate(message_polling_task, "message_polling_task", 512, NULL, 3, &message_polling_task_handle);
@@ -80,10 +80,9 @@ void message_polling_task(void *pvParameters) {
         switch (rxbuf)
         {
         case 0:
-            xQueueOverwrite(irda_queue_handle, &CONTINUE);
             break;
         case RES_OK:
-            // xQueueOverwrite(irda_queue_handle, &rxbuf);
+            xQueueOverwrite(irda_queue_handle, &rxbuf);
             break;
         default:
             xQueueOverwrite(irda_queue_handle, &WAIT);
@@ -107,7 +106,6 @@ void Interaction_task(void *pvParameters) {
         LED1_TOGGLE();
 
         xQueueReceive(irda_queue_handle, &rxqueue, portMAX_DELAY);
-        xQueuePeek(interaction_queue_handle, &txbuf, portMAX_DELAY);
 
         switch (rxqueue)
         {
@@ -115,9 +113,6 @@ void Interaction_task(void *pvParameters) {
             break;
         case RES:
             Infrared_send(&huart7, FROM_R2, RES_OK);
-            break;
-        case CON_SEND:
-            // Infrared_send(&huart7, FROM_R1, txdata);
             break;
         default:
             break;
@@ -143,7 +138,7 @@ void task3(void *pvParameters) {
 
     while (1) {
         int i = 2;
-        xQueueSend(interaction_queue_handle, &i, portMAX_DELAY);
+        // xQueueSend(interaction_queue_handle, &i, portMAX_DELAY);
         vTaskDelay(100);
     }
 }

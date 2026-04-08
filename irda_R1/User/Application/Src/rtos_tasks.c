@@ -107,14 +107,14 @@ void Interaction_task(void *pvParameters) {
         LED1_TOGGLE();
 
         xQueueReceive(irda_queue_handle, &rxqueue, portMAX_DELAY);
-        xQueuePeek(interaction_queue_handle, &txbuf, portMAX_DELAY);
+        xQueuePeek(interaction_queue_handle, &txdata, portMAX_DELAY);
 
         switch (rxqueue)
         {
         case RES_OK:
             break;
         case RES:
-            // Infrared_send(&huart7, FROM_R1, RES_OK);
+            Infrared_send(&huart7, FROM_R1, RES_OK);
             break;
         case CON_SEND:
             Infrared_send(&huart7, FROM_R1, txdata);
