@@ -112,6 +112,7 @@ void Interaction_task(void *pvParameters) {
         switch (rxqueue)
         {
         case RES_OK:
+            Infrared_send(&huart7, FROM_R1, RES_OK);
             break;
         case RES:
             Infrared_send(&huart7, FROM_R1, RES_OK);
